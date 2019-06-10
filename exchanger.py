@@ -1,6 +1,7 @@
 import aiohttp
 import config
 import json
+from datetime import datetime, timedelta
 
 
 class Exchanger:
@@ -8,6 +9,7 @@ class Exchanger:
         self._timeout = aiohttp.ClientTimeout(connect=5)
         self._http_session = aiohttp.ClientSession()
         self._rates = dict()
+        self._rates_expired = datetime.utcnow()
 
     def __del__(self):
         self._http_session.close()
@@ -42,11 +44,24 @@ class Exchanger:
         except IndexError:
             return None
 
-    async def download_currencies(self):
+    def _set_expiration_time(self):
+        next_day = datetime.utcnow() + timedelta(days=1)
+        self._rates_expired = datetime(next_day.year,
+                                       next_day.month,
+                                       next_day.day, 9, 0, 0)
+
+    async def prepare_rates(self):
+        if self._rates_expired < datetime.utcnow():
+            await download_rates()
+
+    async def download_rates(self):
         for currency_type in config.CURRENCIES:
             self._rates[currency_type] = await self._get_rate(currency_type)
 
-    def exchange(self, amount, currency_from):
+        self._set_expiration_time()
+
+    async def exchange(self, amount, currency_from):
+        await self.prepare_rates()
         result = dict()
 
         for currency_type in config.CURRENCIES:

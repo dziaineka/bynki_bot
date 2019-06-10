@@ -98,8 +98,8 @@ def compose_keyboard(excluded_currency):
     return keyboard.add(*buttons)
 
 
-def exhange(amount, currency_from):
-    exchanged_amount = exchanger.exchange(amount, currency_from)
+async def exhange(amount, currency_from):
+    exchanged_amount = await exchanger.exchange(amount, currency_from)
     text = compose_reply(exchanged_amount, currency_from)
     keyboard = compose_keyboard(currency_from)
     return text, keyboard
@@ -137,7 +137,7 @@ async def amount_sent(message: types.Message, state: FSMContext):
                 str(message.from_user.username))
 
     amount, currency_type = parse_input(message.text)
-    text, keyboard = exhange(amount, currency_type)
+    text, keyboard = await exhange(amount, currency_type)
     await bot.send_message(message.from_user.id,
                            text,
                            reply_markup=keyboard,
@@ -162,7 +162,7 @@ async def currency_click(call):
                 str(call.from_user.username))
 
     await bot.answer_callback_query(call.id)
-    text, keyboard = exhange(get_amount(call.message.text), call.data)
+    text, keyboard = await exhange(get_amount(call.message.text), call.data)
 
     await bot.edit_message_text(text,
                                 call.message.chat.id,
@@ -173,7 +173,7 @@ async def currency_click(call):
 
 async def startup(dispatcher: Dispatcher):
     logger.info('Загружаем валюты.')
-    await exchanger.download_currencies()
+    await exchanger.download_rates()
     logger.info('Загрузили.')
 
 
