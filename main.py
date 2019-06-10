@@ -67,11 +67,14 @@ def parse_input(raw_input):
 
 
 def compose_reply(amounts, main_currency):
-    text = f'{config.FLAGS[main_currency]} {amounts[main_currency]} \n\n'
+    text = f'{config.FLAGS[main_currency]} ' +\
+           f'*{amounts[main_currency]}* \n\n'
+
     del amounts[main_currency]
 
     for currency_type in amounts:
-        text += f'{config.FLAGS[currency_type]} {amounts[currency_type]} \n'
+        text += f'{config.FLAGS[currency_type]} ' +\
+                f'*{amounts[currency_type]}* \n'
 
     return text
 
@@ -103,7 +106,6 @@ def exhange(amount, currency_from):
 
 
 def get_amount(message_text):
-    # clean_text = message_text.replace('\n', '|').replace(' ', '|')
     m = re_float.findall(message_text)
     return float(m[0][0])
 
@@ -136,7 +138,10 @@ async def amount_sent(message: types.Message, state: FSMContext):
 
     amount, currency_type = parse_input(message.text)
     text, keyboard = exhange(amount, currency_type)
-    await bot.send_message(message.from_user.id, text, reply_markup=keyboard)
+    await bot.send_message(message.from_user.id,
+                           text,
+                           reply_markup=keyboard,
+                           parse_mode='Markdown')
 
 
 @dp.message_handler()
@@ -162,7 +167,8 @@ async def currency_click(call):
     await bot.edit_message_text(text,
                                 call.message.chat.id,
                                 call.message.message_id,
-                                reply_markup=keyboard)
+                                reply_markup=keyboard,
+                                parse_mode='Markdown')
 
 
 async def startup(dispatcher: Dispatcher):
