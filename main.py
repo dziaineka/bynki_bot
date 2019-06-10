@@ -48,8 +48,22 @@ re_float = re.compile(regexps.re_float,
                       re.MULTILINE | re.IGNORECASE | re.VERBOSE)
 
 
+def keywords_match(raw_input, keywords):
+    for keyword in keywords:
+        if keyword in raw_input:
+            return True
+
+    return False
+
+
 def parse_input(raw_input):
-    return raw_input, config.BYN
+    raw_input = raw_input.replace(',', '.')
+
+    for currency_type in config.KEYWORDS:
+        if keywords_match(raw_input, config.KEYWORDS[currency_type]):
+            return get_amount(raw_input), currency_type
+
+    return get_amount(raw_input), config.BYN
 
 
 def compose_reply(amounts, main_currency):
@@ -89,9 +103,16 @@ def exhange(amount, currency_from):
 
 
 def get_amount(message_text):
-    clean_text = message_text.replace('\n', '|').replace(' ', '|')
-    m = re_float.findall(clean_text)
+    # clean_text = message_text.replace('\n', '|').replace(' ', '|')
+    m = re_float.findall(message_text)
     return float(m[0][0])
+
+
+def valid_input(raw_input):
+    m = re_float.findall(raw_input)
+
+    if m:
+        return True
 
 
 @dp.message_handler(commands=['start'])
@@ -104,7 +125,8 @@ async def cmd_start(message: types.Message):
                         'валюты наших соседей.')
 
 
-@dp.message_handler(content_types=types.ContentType.TEXT)
+@dp.message_handler(lambda message: valid_input(message.text),
+                    content_types=types.ContentType.TEXT)
 async def amount_sent(message: types.Message, state: FSMContext):
     """
     Process entered money amount
@@ -115,6 +137,18 @@ async def amount_sent(message: types.Message, state: FSMContext):
     amount, currency_type = parse_input(message.text)
     text, keyboard = exhange(amount, currency_type)
     await bot.send_message(message.from_user.id, text, reply_markup=keyboard)
+
+
+@dp.message_handler()
+async def wrong_input(message: types.Message, state: FSMContext):
+    """
+    Wrong input
+    """
+    logger.info(f'Спросили неправильное "{message.text}" - ' +
+                str(message.from_user.username))
+
+    text = 'Некорректный ввод 🤷‍♀️'
+    await bot.send_message(message.from_user.id, text)
 
 
 @dp.callback_query_handler(lambda call: call.data in config.CURRENCIES)
