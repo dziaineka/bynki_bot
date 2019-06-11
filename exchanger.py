@@ -52,7 +52,7 @@ class Exchanger:
 
     async def prepare_rates(self):
         if self._rates_expired < datetime.utcnow():
-            await download_rates()
+            await self.download_rates()
 
     async def download_rates(self):
         for currency_type in config.CURRENCIES:
