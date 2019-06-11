@@ -129,7 +129,7 @@ async def cmd_start(message: types.Message):
 
 @dp.message_handler(lambda message: valid_input(message.text),
                     content_types=types.ContentType.TEXT)
-async def amount_sent(message: types.Message, state: FSMContext):
+async def amount_sent(message: types.Message):
     """
     Process entered money amount
     """
@@ -144,8 +144,28 @@ async def amount_sent(message: types.Message, state: FSMContext):
                            parse_mode='Markdown')
 
 
+@dp.inline_handler()
+async def inline_exhange(inline_query: types.InlineQuery):
+    input_content = types.InputTextMessageContent(inline_query.query,
+                                                  parse_mode='Markdown')
+
+    if valid_input(input_content.message_text):
+        amount, currency_type = parse_input(input_content.message_text)
+        text, keyboard = await exhange(amount, currency_type)
+        input_content.message_text = text
+    else:
+        text = 'Некорректный ввод 🤷‍♀️'
+        input_content.message_text = text
+
+    item = types.InlineQueryResultArticle(id='1',
+                                          title=text.replace('*', ''),
+                                          input_message_content=input_content)
+
+    await bot.answer_inline_query(inline_query.id, results=[item])
+
+
 @dp.message_handler()
-async def wrong_input(message: types.Message, state: FSMContext):
+async def wrong_input(message: types.Message):
     """
     Wrong input
     """
