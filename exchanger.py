@@ -9,7 +9,7 @@ class Exchanger:
         self._timeout = aiohttp.ClientTimeout(connect=5)
         self._http_session = aiohttp.ClientSession()
         self._rates = dict()
-        self._rates_expired = datetime.utcnow()
+        self._rates_expiration = datetime.utcnow()
 
     def __del__(self):
         self._http_session.close()
@@ -46,12 +46,12 @@ class Exchanger:
 
     def _set_expiration_time(self):
         next_day = datetime.utcnow() + timedelta(days=1)
-        self._rates_expired = datetime(next_day.year,
-                                       next_day.month,
-                                       next_day.day, 9, 0, 0)
+        self._rates_expiration = datetime(next_day.year,
+                                          next_day.month,
+                                          next_day.day, 9, 0, 0)
 
     async def prepare_rates(self):
-        if self._rates_expired < datetime.utcnow():
+        if self._rates_expiration < datetime.utcnow():
             await self.download_rates()
 
     async def download_rates(self):
