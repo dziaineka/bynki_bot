@@ -146,6 +146,9 @@ async def amount_sent(message: types.Message):
 
 @dp.inline_handler()
 async def inline_exhange(inline_query: types.InlineQuery):
+    logger.info(f'Спрашивают инлайн {inline_query.query} ' +
+                str(inline_query.from_user.username))
+
     input_content = types.InputTextMessageContent(inline_query.query,
                                                   parse_mode='Markdown')
 
