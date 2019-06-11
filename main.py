@@ -50,7 +50,7 @@ re_float = re.compile(regexps.re_float,
 
 def keywords_match(raw_input, keywords):
     for keyword in keywords:
-        if keyword in raw_input:
+        if keyword.upper() in raw_input.upper():
             return True
 
     return False
