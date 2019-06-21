@@ -58,7 +58,7 @@ def keywords_match(raw_input, keywords):
 
 
 def parse_input(raw_input):
-    raw_input = raw_input.replace(',', '.')
+    raw_input = raw_input.replace(',', '.').replace(' ', '')
 
     for currency_type in config.KEYWORDS:
         if keywords_match(raw_input, config.KEYWORDS[currency_type]):
@@ -69,15 +69,15 @@ def parse_input(raw_input):
 
 def compose_reply(amounts, main_currency):
     text = f'{config.FLAGS[main_currency]} ' +\
-           f'*{amounts[main_currency]}* \n\n'
+           f'*{amounts[main_currency]:,}* \n\n'
 
     del amounts[main_currency]
 
     for currency_type in amounts:
         text += f'{config.FLAGS[currency_type]} ' +\
-                f'*{amounts[currency_type]}* \n'
+                f'*{amounts[currency_type]:,}* \n'
 
-    return text
+    return text.replace(',', ' ')
 
 
 def get_currency_button(currency_type):
@@ -107,7 +107,7 @@ async def exhange(amount, currency_from):
 
 
 def get_amount(message_text):
-    m = re_float.findall(message_text)
+    m = re_float.findall(message_text.replace(' ', ''))
     return float(m[0][0])
 
 
@@ -189,11 +189,11 @@ async def currency_click(call):
     text, keyboard = await exhange(get_amount(call.message.text), call.data)
 
     try:
-    await bot.edit_message_text(text,
-                                call.message.chat.id,
-                                call.message.message_id,
-                                reply_markup=keyboard,
-                                parse_mode='Markdown')
+        await bot.edit_message_text(text,
+                                    call.message.chat.id,
+                                    call.message.message_id,
+                                    reply_markup=keyboard,
+                                    parse_mode='Markdown')
     except MessageNotModified:
         pass
 
