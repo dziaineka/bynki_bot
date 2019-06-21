@@ -12,6 +12,7 @@ from aiogram.contrib.fsm_storage.memory import MemoryStorage
 from aiogram.dispatcher import FSMContext
 from aiogram.types import ParseMode
 from aiogram.utils import executor
+from aiogram.utils.exceptions import MessageNotModified
 
 
 def setup_logging():
@@ -187,11 +188,14 @@ async def currency_click(call):
     await bot.answer_callback_query(call.id)
     text, keyboard = await exhange(get_amount(call.message.text), call.data)
 
+    try:
     await bot.edit_message_text(text,
                                 call.message.chat.id,
                                 call.message.message_id,
                                 reply_markup=keyboard,
                                 parse_mode='Markdown')
+    except MessageNotModified:
+        pass
 
 
 async def startup(dispatcher: Dispatcher):
