@@ -65,16 +65,19 @@ def parse_input(raw_input):
 
 
 def compose_reply(amounts, main_currency):
-    text = f'{config.FLAGS[main_currency]} ' +\
-           f'*{amounts[main_currency]:,}* \n\n'
+    text = formatted_sum(amounts, main_currency) + '\n'
 
     del amounts[main_currency]
 
     for currency_type in amounts:
-        text += f'{config.FLAGS[currency_type]} ' +\
-                f'*{amounts[currency_type]:,}* \n'
+        text += formatted_sum(amounts, currency_type)
 
     return text.replace(',', ' ')
+
+
+def formatted_sum(amounts: dict, currency: str) -> str:
+    amount = int(amounts[currency])
+    return f'{config.FLAGS[currency]} <b>{amount:,}</b> \n'
 
 
 def get_currency_button(currency_type):
@@ -139,7 +142,7 @@ async def amount_sent(message: types.Message):
     await bot.send_message(message.from_user.id,
                            text,
                            reply_markup=keyboard,
-                           parse_mode='Markdown')
+                           parse_mode='HTML')
 
 
 @dp.inline_handler()
@@ -148,7 +151,7 @@ async def inline_exhange(inline_query: types.InlineQuery):
                 str(inline_query.from_user.username))
 
     input_content = types.InputTextMessageContent(inline_query.query,
-                                                  parse_mode='Markdown')
+                                                  parse_mode='HTML')
 
     if valid_input(input_content.message_text):
         amount, currency_type = parse_input(input_content.message_text)
@@ -190,7 +193,7 @@ async def currency_click(call):
                                     call.message.chat.id,
                                     call.message.message_id,
                                     reply_markup=keyboard,
-                                    parse_mode='Markdown')
+                                    parse_mode='HTML')
     except MessageNotModified:
         pass
 
