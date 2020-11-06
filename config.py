@@ -1,4 +1,7 @@
-BOT_TOKEN = "PASTE_TOKEN_HERE"
+import os
+
+
+BOT_TOKEN = os.getenv('TG_TOKEN')
 
 # currencies
 BYN = 'BYN'
