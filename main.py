@@ -1,18 +1,15 @@
 import asyncio
-import config
 import logging
-import regexps
 import re
-from exchanger import Exchanger
-from typing import Optional
 
-import aiogram.utils.markdown as md
 from aiogram import Bot, Dispatcher, types
 from aiogram.contrib.fsm_storage.memory import MemoryStorage
-from aiogram.dispatcher import FSMContext
-from aiogram.types import ParseMode
 from aiogram.utils import executor
 from aiogram.utils.exceptions import MessageNotModified
+
+import config
+import regexps
+from exchanger import Exchanger
 
 
 def setup_logging():
