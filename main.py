@@ -1,6 +1,7 @@
 import asyncio
 import logging
 import re
+from typing import Tuple
 
 from aiogram import Bot, Dispatcher, types
 from aiogram.contrib.fsm_storage.memory import MemoryStorage
@@ -76,7 +77,7 @@ def compose_reply(amounts, main_currency):
 
 
 def formatted_sum(amounts: dict, currency: str) -> str:
-    amount = int(amounts[currency])
+    amount = float(amounts[currency])
     return f'{config.FLAGS[currency]} <b>{amount:,}</b> \n'
 
 
@@ -99,7 +100,9 @@ def compose_keyboard(excluded_currency):
     return keyboard.add(*buttons)
 
 
-async def exhange(amount, currency_from):
+async def exhange(
+        amount: float,
+        currency_from: str) -> Tuple[str, types.InlineKeyboardMarkup]:
     exchanged_amount = await exchanger.exchange(amount, currency_from)
     text = compose_reply(exchanged_amount, currency_from)
     keyboard = compose_keyboard(currency_from)

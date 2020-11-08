@@ -1,3 +1,4 @@
+from typing import Union
 import aiohttp
 import config
 import json
@@ -60,7 +61,7 @@ class Exchanger:
 
         self._set_expiration_time()
 
-    async def exchange(self, amount, currency_from):
+    async def exchange(self, amount: int, currency_from: str) -> dict:
         await self.prepare_rates()
         result = dict()
 
