@@ -1,6 +1,7 @@
 import asyncio
 import logging
 import re
+import sys
 from typing import Tuple
 
 from aiogram import Bot, Dispatcher, types
@@ -12,27 +13,12 @@ import config
 import regexps
 from exchanger import Exchanger
 
+logging.basicConfig(
+    stream=sys.stdout,
+    level=logging.INFO,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 
-def setup_logging():
-    # create logger
-    my_logger = logging.getLogger('parkun_log')
-    my_logger.setLevel(logging.DEBUG)
-
-    # create console handler with a higher log level
-    ch = logging.StreamHandler()
-    ch.setLevel(logging.DEBUG)
-
-    # create formatter and add it to the handlers
-    formatter = logging.Formatter(
-        '%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-
-    ch.setFormatter(formatter)
-
-    # add the handlers to the logger
-    my_logger.addHandler(ch)
-
-    return my_logger
-
+logger = logging.getLogger("bynki_bot")
 
 loop = asyncio.get_event_loop()
 
@@ -41,7 +27,6 @@ bot = Bot(token=config.BOT_TOKEN, loop=loop)
 storage = MemoryStorage()
 dp = Dispatcher(bot, storage=storage)
 exchanger = Exchanger()
-logger = setup_logging()
 
 re_float = re.compile(regexps.re_float,
                       re.MULTILINE | re.IGNORECASE | re.VERBOSE)
