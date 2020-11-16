@@ -62,8 +62,12 @@ def compose_reply(amounts, main_currency):
 
 
 def formatted_sum(amounts: dict, currency: str) -> str:
-    amount = float(amounts[currency])
-    return f'{config.FLAGS[currency]} <b>{amount:,}</b> \n'
+    amount = amounts[currency]
+
+    if isinstance(amount, float):
+        amount = f'{amount:,}'
+
+    return f'{config.FLAGS[currency]} <b>{amount}</b> \n'
 
 
 def get_currency_button(currency_type):
