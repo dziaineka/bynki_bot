@@ -2,7 +2,7 @@ import asyncio
 import logging
 import re
 import sys
-from typing import Tuple
+from typing import List, Tuple, Union
 
 from aiogram import Bot, Dispatcher, types
 from aiogram.contrib.fsm_storage.memory import MemoryStorage
@@ -31,8 +31,14 @@ exchanger = Exchanger()
 re_float = re.compile(regexps.re_float,
                       re.MULTILINE | re.IGNORECASE | re.VERBOSE)
 
+re_parse = re.compile(regexps.re_parse,
+                      re.MULTILINE | re.IGNORECASE | re.VERBOSE)
 
-def keywords_match(raw_input, keywords):
+ARITHMETIC_OPERATIONS = ['+', '-', '*', '/']
+WRONG_INPUT = 'Некорректный ввод 🤷‍♀️'
+
+
+def keywords_match(raw_input: str, keywords: list) -> bool:
     for keyword in keywords:
         if keyword.upper() in raw_input.upper():
             return True
@@ -40,14 +46,45 @@ def keywords_match(raw_input, keywords):
     return False
 
 
-def parse_input(raw_input):
+def parse_input(raw_input: str) -> list:
     raw_input = raw_input.replace(',', '.').replace(' ', '')
+    splitted_input = split_input(raw_input)
+    parsed_input = list()
+
+    for input_piece in splitted_input:
+        recognized = recognize_currency(input_piece)
+
+        if recognized:
+            parsed_input.append(recognized)
+
+    return parsed_input
+
+
+def split_input(raw_input: str) -> List[str]:
+    findall = re_parse.findall(raw_input)
+    splitted_input = list()
+
+    for piece in findall:
+        splitted_input += list(piece)
+
+    cleaned_input = list()
+
+    for piece in splitted_input:
+        if piece:
+            cleaned_input.append(piece)
+
+    return cleaned_input
+
+
+def recognize_currency(user_string: str) -> Union[tuple, str]:
+    if user_string in ARITHMETIC_OPERATIONS:
+        return user_string
 
     for currency_type in config.KEYWORDS:
-        if keywords_match(raw_input, config.KEYWORDS[currency_type]):
-            return get_amount(raw_input), currency_type
+        if keywords_match(user_string, config.KEYWORDS[currency_type]):
+            return get_amount(user_string), currency_type
 
-    return get_amount(raw_input), config.BYN
+    return get_amount(user_string), config.BYN
 
 
 def compose_reply(amounts, main_currency):
@@ -110,6 +147,52 @@ def valid_input(raw_input):
         return True
 
 
+async def calc_and_exhange(
+        pieces: list) -> Tuple[str, types.InlineKeyboardMarkup]:
+    exhanged_pieces = ''
+
+    for piece in pieces:
+        if not isinstance(piece, tuple) and piece in ARITHMETIC_OPERATIONS:
+            exhanged_pieces += piece
+            continue
+
+        exchanged_amount = await exchanger.exchange(*piece)
+        exhanged_pieces += str(exchanged_amount[config.BYN])
+
+    success, calculated = calc(exhanged_pieces)
+
+    if success:
+        text, keyboard = await exhange(calculated, config.BYN)
+    else:
+        text = WRONG_INPUT
+        keyboard = None
+
+    return text, keyboard
+
+
+def calc(str_to_eval: str) -> Tuple[bool, float]:
+    sum = 0
+    success = False
+
+    try:
+        sum = eval(str_to_eval)
+        success = True
+    finally:
+        return success, sum
+
+
+async def make_exhanging(text: str) -> Tuple[str, types.InlineKeyboardMarkup]:
+    parsed_input = parse_input(text)
+
+    if len(parsed_input) == 1:
+        data_to_convert = parsed_input.pop()
+        text, keyboard = await exhange(*data_to_convert)
+    else:
+        text, keyboard = await calc_and_exhange(parsed_input)
+
+    return text, keyboard
+
+
 @dp.message_handler(commands=['start'])
 async def cmd_start(message: types.Message):
     """
@@ -129,8 +212,8 @@ async def amount_sent(message: types.Message):
     logger.info(f'Спросили сумму "{message.text}" - ' +
                 str(message.from_user.username))
 
-    amount, currency_type = parse_input(message.text)
-    text, keyboard = await exhange(amount, currency_type)
+    text, keyboard = await make_exhanging(message.text)
+
     await bot.send_message(message.from_user.id,
                            text,
                            reply_markup=keyboard,
@@ -145,13 +228,13 @@ async def inline_exhange(inline_query: types.InlineQuery):
     input_content = types.InputTextMessageContent(inline_query.query,
                                                   parse_mode='HTML')
 
+    text = WRONG_INPUT
+
     if valid_input(input_content.message_text):
-        amount, currency_type = parse_input(input_content.message_text)
-        text, keyboard = await exhange(amount, currency_type)
+        text, _ = await make_exhanging(input_content.message_text)
         input_content.message_text = text
     else:
-        text = 'Некорректный ввод 🤷‍♀️'
-        input_content.message_text = text
+        input_content.message_text = WRONG_INPUT
 
     item = types.InlineQueryResultArticle(id='1',
                                           title=text.replace('*', ''),
@@ -168,8 +251,7 @@ async def wrong_input(message: types.Message):
     logger.info(f'Спросили неправильное "{message.text}" - ' +
                 str(message.from_user.username))
 
-    text = 'Некорректный ввод 🤷‍♀️'
-    await bot.send_message(message.from_user.id, text)
+    await bot.send_message(message.from_user.id, WRONG_INPUT)
 
 
 @dp.callback_query_handler(lambda call: call.data in config.CURRENCIES)

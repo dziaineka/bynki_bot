@@ -9,3 +9,12 @@ re_float = r"""
         )
         ([eE][+-]?\d+)?  # finally, optionally match an exponent
     """
+
+re_parse = r"""
+    (
+        (?:[a-zA-Zа-яА-Я]+)?
+        (?:(?:\d+)?(?:\.\d+)?)
+        (?:[a-zA-Zа-яА-Я.]+)
+    ?)
+    ([\+\-\*\\])?
+"""
