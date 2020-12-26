@@ -150,6 +150,7 @@ def valid_input(raw_input):
 async def calc_and_exhange(
         pieces: list) -> Tuple[str, types.InlineKeyboardMarkup]:
     exhanged_pieces = ''
+    preferred_currency = get_preferred_currency(pieces)
 
     for piece in pieces:
         if not isinstance(piece, tuple) and piece in ARITHMETIC_OPERATIONS:
@@ -157,17 +158,27 @@ async def calc_and_exhange(
             continue
 
         exchanged_amount = await exchanger.exchange(*piece)
-        exhanged_pieces += str(exchanged_amount[config.BYN])
+        exhanged_pieces += str(exchanged_amount[preferred_currency])
 
     success, calculated = calc(exhanged_pieces)
 
     if success:
-        text, keyboard = await exhange(calculated, config.BYN)
+        text, keyboard = await exhange(calculated, preferred_currency)
     else:
         text = WRONG_INPUT
         keyboard = None
 
     return text, keyboard
+
+
+def get_preferred_currency(bundles: List[tuple]) -> str:
+    for bundle in bundles:
+        try:
+            return bundle[1]
+        except IndexError:
+            continue
+
+    return config.BYN
 
 
 def calc(str_to_eval: str) -> Tuple[bool, float]:
