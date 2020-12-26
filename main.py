@@ -187,6 +187,7 @@ def calc(str_to_eval: str) -> Tuple[bool, float]:
 
     try:
         sum = eval(str_to_eval)
+        sum = round(sum, 2)
         success = True
     finally:
         return success, sum
