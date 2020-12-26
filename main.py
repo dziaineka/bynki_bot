@@ -38,9 +38,22 @@ ARITHMETIC_OPERATIONS = ['+', '-', '*', '/']
 WRONG_INPUT = 'Некорректный ввод 🤷‍♀️'
 
 
-def keywords_match(raw_input: str, keywords: list) -> bool:
+def keywords_inside(raw_input: str, keywords: list) -> bool:
     for keyword in keywords:
         if keyword.upper() in raw_input.upper():
+            return True
+
+    return False
+
+
+def keywords_full_match(raw_input: str, keywords: list) -> bool:
+    amount = get_amount(raw_input)
+    currency_only = raw_input.replace(str(amount), '')
+    currency_only = raw_input.replace(str(int(amount)), '')
+    currency_only = currency_only.replace('.', '')
+
+    for keyword in keywords:
+        if keyword.upper() == currency_only.upper():
             return True
 
     return False
@@ -80,8 +93,17 @@ def recognize_currency(user_string: str) -> Union[tuple, str]:
     if user_string in ARITHMETIC_OPERATIONS:
         return user_string
 
-    for currency_type in config.KEYWORDS:
-        if keywords_match(user_string, config.KEYWORDS[currency_type]):
+    full_match_patterns = config.KEYWORDS[config.FULL_MATCH]
+
+    for currency_type in full_match_patterns:
+        if keywords_full_match(user_string,
+                               full_match_patterns[currency_type]):
+            return get_amount(user_string), currency_type
+
+    inside_patterns = config.KEYWORDS[config.INSIDE]
+
+    for currency_type in inside_patterns:
+        if keywords_inside(user_string, inside_patterns[currency_type]):
             return get_amount(user_string), currency_type
 
     return get_amount(user_string), config.BYN
