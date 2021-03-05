@@ -2,7 +2,6 @@ import asyncio
 import json
 import logging
 from datetime import datetime, timedelta
-from typing import Union
 
 import aiohttp
 
@@ -14,13 +13,9 @@ logger = logging.getLogger(__name__)
 
 class Exchanger:
     def __init__(self):
-        self._http_session = aiohttp.ClientSession()
         self._rates = dict()
         self._rates_expiration = datetime.utcnow()
         self._download_task = None
-
-    def __del__(self):
-        self._http_session.close()
 
     async def _get_rate(self, currency_type):
         if currency_type == config.BYN:
@@ -33,14 +28,15 @@ class Exchanger:
         }
 
         try:
-            async with self._http_session.get(
-                                    url,
-                    params=params) as response:
-                if response.status != 200:
-                    return None
+            async with aiohttp.ClientSession() as http_session:
+                async with http_session.get(url, params=params) as response:
+                    if response.status != 200:
+                        return None
 
-                resp_json = await response.json(content_type=None)
-                return resp_json['Cur_OfficialRate'] / resp_json['Cur_Scale']
+                    resp_json = await response.json(content_type=None)
+
+                    return \
+                        resp_json['Cur_OfficialRate'] / resp_json['Cur_Scale']
 
         except aiohttp.ServerTimeoutError:
             return None

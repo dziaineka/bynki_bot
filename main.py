@@ -2,7 +2,7 @@ import asyncio
 import logging
 import re
 import sys
-from typing import List, Tuple, Union
+from typing import List, Optional, Tuple, Union
 
 from aiogram import Bot, Dispatcher, types
 from aiogram.contrib.fsm_storage.memory import MemoryStorage
@@ -170,7 +170,7 @@ def valid_input(raw_input):
 
 
 async def calc_and_exhange(
-        pieces: list) -> Tuple[str, types.InlineKeyboardMarkup]:
+        pieces: list) -> Tuple[str, Optional[types.InlineKeyboardMarkup]]:
     exhanged_pieces = ''
     preferred_currency = get_preferred_currency(pieces)
 
@@ -215,7 +215,8 @@ def calc(str_to_eval: str) -> Tuple[bool, float]:
         return success, sum
 
 
-async def make_exhanging(text: str) -> Tuple[str, types.InlineKeyboardMarkup]:
+async def make_exhanging(
+        text: str) -> Tuple[str, Optional[types.InlineKeyboardMarkup]]:
     parsed_input = parse_input(text)
 
     if len(parsed_input) == 1:
