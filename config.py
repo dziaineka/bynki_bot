@@ -1,7 +1,15 @@
-import os
+from os import getenv
+from os.path import join, dirname
+from dotenv import load_dotenv
+
+# Create .env file path.
+dotenv_path = join(dirname(__file__), ".env")
+
+# Load file from the path.
+load_dotenv(dotenv_path)
 
 
-BOT_TOKEN = os.getenv('TG_TOKEN')
+BOT_TOKEN = getenv('TG_TOKEN')
 
 # currencies
 BYN = 'BYN'
