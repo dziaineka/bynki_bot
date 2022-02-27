@@ -76,7 +76,8 @@ class Exchanger:
     async def download_rates(self):
         try:
             for currency_type in config.CURRENCIES:
-                self._rates[currency_type] = await self._get_rate(currency_type)
+                self._rates[currency_type] = \
+                    await self._get_rate(currency_type)
 
             self._set_expiration_time()
         except Exception:
