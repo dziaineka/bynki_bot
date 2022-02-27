@@ -9,7 +9,7 @@ dotenv_path = join(dirname(__file__), ".env")
 load_dotenv(dotenv_path)
 
 
-BOT_TOKEN = getenv('TG_TOKEN')
+BOT_TOKEN = getenv('TG_TOKEN', "")
 
 # currencies
 BYN = 'BYN'

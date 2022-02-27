@@ -74,10 +74,13 @@ class Exchanger:
             pass
 
     async def download_rates(self):
-        for currency_type in config.CURRENCIES:
-            self._rates[currency_type] = await self._get_rate(currency_type)
+        try:
+            for currency_type in config.CURRENCIES:
+                self._rates[currency_type] = await self._get_rate(currency_type)
 
-        self._set_expiration_time()
+            self._set_expiration_time()
+        except Exception:
+            logger.exception("Error while loading exchange rates")
 
     async def exchange(self, amount: float, currency_from: str) -> dict:
         await self.prepare_rates()
@@ -88,8 +91,8 @@ class Exchanger:
                 result[currency_type] = float(amount)
                 continue
 
-            if not self._rates[currency_type] \
-                    or not self._rates[currency_from]:
+            if not self._rates.get(currency_type, None) \
+                    or not self._rates.get(currency_from, None):
                 result[currency_type] = NO_RATES
                 logger.info("Попробуем загрузить курсы еще раз")
                 await self.prepare_rates(force=True)
