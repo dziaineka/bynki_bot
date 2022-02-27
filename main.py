@@ -308,9 +308,7 @@ async def currency_click(call):
 
 
 async def startup(dispatcher: Dispatcher):
-    logger.info('Загружаем валюты.')
-    await exchanger.download_rates()
-    logger.info('Загрузили.')
+    asyncio.create_task(exchanger.download_rates(force=True))
 
 
 if __name__ == '__main__':

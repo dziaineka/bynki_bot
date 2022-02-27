@@ -15,7 +15,7 @@ class Exchanger:
     def __init__(self):
         self._rates = dict()
         self._rates_expiration = datetime.utcnow()
-        self._download_task = None
+        self._downloading_in_progress = False
 
     async def _get_rate(self, currency_type):
         if currency_type == config.BYN:
@@ -53,38 +53,31 @@ class Exchanger:
                                           next_day.month,
                                           next_day.day, 9, 0, 0)
 
-    async def prepare_rates(self, force=False):
-        if self._rates_expiration < datetime.utcnow():
-            await self.download_rates()
-
-        if not force:
+    async def download_rates(self, force=False):
+        if self._rates_expiration > datetime.utcnow() and not force:
             return
 
-        if not isinstance(self._download_task, asyncio.Task):
-            self._download_task = asyncio.create_task(self.download_rates())
-            return
-
-        try:
-            self._download_task.result()
-            self._download_task = asyncio.create_task(self.download_rates())
-        except asyncio.CancelledError:
-            self._download_task = asyncio.create_task(self.download_rates())
-        except asyncio.InvalidStateError:
+        if self._downloading_in_progress:
             logger.info("Уже загружаются")
-            pass
+            return
 
-    async def download_rates(self):
+        logger.info('Загружаем валюты.')
+        self._downloading_in_progress = True
+
         try:
             for currency_type in config.CURRENCIES:
                 self._rates[currency_type] = \
                     await self._get_rate(currency_type)
 
             self._set_expiration_time()
+            logger.info('Загрузили.')
         except Exception:
             logger.exception("Error while loading exchange rates")
 
+        self._downloading_in_progress = False
+
     async def exchange(self, amount: float, currency_from: str) -> dict:
-        await self.prepare_rates()
+        await self.download_rates()
         result = dict()
 
         for currency_type in config.CURRENCIES:
@@ -96,7 +89,7 @@ class Exchanger:
                     or not self._rates.get(currency_from, None):
                 result[currency_type] = NO_RATES
                 logger.info("Попробуем загрузить курсы еще раз")
-                await self.prepare_rates(force=True)
+                asyncio.create_task(self.download_rates(force=True))
             else:
                 result[currency_type] = round(
                     (
