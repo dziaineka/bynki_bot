@@ -62,14 +62,26 @@ class Exchanger:
 
         self._downloading_in_progress = True
 
-        for download_rates in self.download_rates_functions:
-            result = await download_rates()
+        rates_tasks = list()
 
-            if result:
-                self._rates = result
-                self._set_expiration_time()
-                break
-            else:
-                self._rates = dict()
+        for download_rates in self.download_rates_functions:
+            rates_tasks.append(download_rates())
+
+        if rates := await self.wait_first(rates_tasks):
+            self._rates = rates
+            self._set_expiration_time()
+        else:
+            self._rates = dict()
 
         self._downloading_in_progress = False
+
+    async def wait_first(self, tasks: list):
+        done, pending = await asyncio.wait(
+            tasks,
+            return_when=asyncio.FIRST_COMPLETED)
+
+        for future in pending:
+            future.cancel()
+
+        for future in done:
+            return future.result()
