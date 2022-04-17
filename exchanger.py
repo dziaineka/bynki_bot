@@ -2,6 +2,7 @@ import asyncio
 import logging
 from datetime import datetime, timedelta
 import nbrb
+import etalonline
 
 import config
 
@@ -14,7 +15,10 @@ class Exchanger:
         self._rates = dict()
         self._rates_expiration = datetime.utcnow()
         self._downloading_in_progress = False
-        self.download_rates_function = nbrb.download_rates
+        self.download_rates_functions = [
+            nbrb.download_rates,
+            etalonline.download_rates,
+        ]
 
     def _set_expiration_time(self):
         next_day = datetime.utcnow() + timedelta(days=1)
@@ -57,10 +61,15 @@ class Exchanger:
             return
 
         self._downloading_in_progress = True
-        result = await self.download_rates_function()
 
-        if result:
-            self._rates = result
+        for download_rates in self.download_rates_functions:
+            result = await download_rates()
 
-        self._set_expiration_time()
+            if result:
+                self._rates = result
+                self._set_expiration_time()
+                break
+            else:
+                self._rates = dict()
+
         self._downloading_in_progress = False
