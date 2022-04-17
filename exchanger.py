@@ -1,13 +1,11 @@
 import asyncio
-import json
 import logging
 from datetime import datetime, timedelta
-
-import aiohttp
+import nbrb
 
 import config
 
-NO_RATES = '🤷‍♀️ НБРБ не отдал курс'
+NO_RATES = '🤷‍♀️ Не удалось получить курс НБРБ'
 logger = logging.getLogger(__name__)
 
 
@@ -16,65 +14,13 @@ class Exchanger:
         self._rates = dict()
         self._rates_expiration = datetime.utcnow()
         self._downloading_in_progress = False
-
-    async def _get_rate(self, currency_type):
-        if currency_type == config.BYN:
-            return 1
-
-        url = 'https://www.nbrb.by/API/ExRates/Rates/' + currency_type + '?'
-
-        params = {
-            'ParamMode': 2
-        }
-
-        try:
-            async with aiohttp.ClientSession() as http_session:
-                async with http_session.get(url, params=params) as response:
-                    if response.status != 200:
-                        return None
-
-                    resp_json = await response.json(content_type=None)
-
-                    return \
-                        resp_json['Cur_OfficialRate'] / resp_json['Cur_Scale']
-
-        except aiohttp.ServerTimeoutError:
-            return None
-
-        except json.decoder.JSONDecodeError:
-            return None
-
-        except IndexError:
-            return None
+        self.download_rates_function = nbrb.download_rates
 
     def _set_expiration_time(self):
         next_day = datetime.utcnow() + timedelta(days=1)
         self._rates_expiration = datetime(next_day.year,
                                           next_day.month,
                                           next_day.day, 9, 0, 0)
-
-    async def download_rates(self, force=False):
-        if self._rates_expiration > datetime.utcnow() and not force:
-            return
-
-        if self._downloading_in_progress:
-            logger.info("Уже загружаются")
-            return
-
-        logger.info('Загружаем валюты.')
-        self._downloading_in_progress = True
-
-        try:
-            for currency_type in config.CURRENCIES:
-                self._rates[currency_type] = \
-                    await self._get_rate(currency_type)
-
-            self._set_expiration_time()
-            logger.info('Загрузили.')
-        except Exception:
-            logger.exception("Error while loading exchange rates")
-
-        self._downloading_in_progress = False
 
     async def exchange(self, amount: float, currency_from: str) -> dict:
         await self.download_rates()
@@ -101,3 +47,20 @@ class Exchanger:
                 )
 
         return result
+
+    async def download_rates(self, force=False):
+        if self._rates_expiration > datetime.utcnow() and not force:
+            return
+
+        if self._downloading_in_progress:
+            logger.info("Уже загружаются")
+            return
+
+        self._downloading_in_progress = True
+        result = await self.download_rates_function()
+
+        if result:
+            self._rates = result
+
+        self._set_expiration_time()
+        self._downloading_in_progress = False
