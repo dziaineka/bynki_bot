@@ -24,7 +24,7 @@ class Exchanger:
         next_day = datetime.utcnow() + timedelta(days=1)
         self._rates_expiration = datetime(next_day.year,
                                           next_day.month,
-                                          next_day.day, 9, 0, 0)
+                                          next_day.day, 14, 0, 0)
 
     async def exchange(self, amount: float, currency_from: str) -> dict:
         await self.download_rates()
@@ -62,16 +62,17 @@ class Exchanger:
 
         self._downloading_in_progress = True
 
-        rates_tasks = list()
-
         for download_rates in self.download_rates_functions:
-            rates_tasks.append(download_rates())
-
-        if rates := await self.wait_first(rates_tasks):
-            self._rates = rates
-            self._set_expiration_time()
-        else:
-            self._rates = dict()
+            try:
+                if rates := \
+                        await asyncio.wait_for(download_rates(), timeout=3):
+                    self._rates = rates
+                    self._set_expiration_time()
+                    break
+                else:
+                    self._rates = dict()
+            except asyncio.TimeoutError:
+                logger.info("Rates downloading timeout!")
 
         self._downloading_in_progress = False
 
