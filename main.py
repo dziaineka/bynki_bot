@@ -20,9 +20,7 @@ logging.basicConfig(
 
 logger = logging.getLogger("bynki_bot")
 
-loop = asyncio.get_event_loop()
-
-bot = Bot(token=config.BOT_TOKEN, loop=loop)
+bot = Bot(token=config.BOT_TOKEN)
 
 storage = MemoryStorage()
 dp = Dispatcher(bot, storage=storage)
@@ -313,6 +311,5 @@ async def startup(dispatcher: Dispatcher):
 
 if __name__ == '__main__':
     executor.start_polling(dp,
-                           loop=loop,
                            skip_updates=True,
                            on_startup=startup)
