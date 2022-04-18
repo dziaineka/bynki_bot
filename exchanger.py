@@ -3,6 +3,7 @@ import logging
 from datetime import datetime, timedelta
 import nbrb
 import etalonline
+import selectby
 
 import config
 
@@ -17,6 +18,7 @@ class Exchanger:
         self._downloading_in_progress = False
         self.download_rates_functions = [
             nbrb.download_rates,
+            selectby.download_rates,
             etalonline.download_rates,
         ]
 
