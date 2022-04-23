@@ -23,10 +23,8 @@ class Exchanger:
         ]
 
     def _set_expiration_time(self):
-        next_day = datetime.utcnow() + timedelta(days=1)
-        self._rates_expiration = datetime(next_day.year,
-                                          next_day.month,
-                                          next_day.day, 14, 0, 0)
+        self._rates_expiration = \
+            datetime.utcnow() + timedelta(hours=config.REFRESH_RATES_PAUSE)
 
     async def exchange(self, amount: float, currency_from: str) -> dict:
         await self.download_rates()

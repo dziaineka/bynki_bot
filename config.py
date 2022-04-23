@@ -11,6 +11,9 @@ load_dotenv(dotenv_path)
 
 BOT_TOKEN = getenv('TG_TOKEN', "")
 
+# hours
+REFRESH_RATES_PAUSE = int(getenv('REFRESH_RATES_PAUSE', "4"))
+
 # currencies
 BYN = 'BYN'
 UAH = 'UAH'
