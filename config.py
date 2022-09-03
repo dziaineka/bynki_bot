@@ -10,6 +10,7 @@ load_dotenv(dotenv_path)
 
 
 BOT_TOKEN = getenv('TG_TOKEN', "")
+ENABLE_DUMMY_SERVER = bool(int(getenv('ENABLE_DUMMY_SERVER', 0)))
 
 # hours
 REFRESH_RATES_PAUSE = int(getenv('REFRESH_RATES_PAUSE', "4"))

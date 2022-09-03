@@ -10,6 +10,7 @@ from aiogram.utils import executor
 from aiogram.utils.exceptions import MessageNotModified
 
 import config
+import dummy_server
 import regexps
 from exchanger import Exchanger
 
@@ -307,6 +308,9 @@ async def currency_click(call):
 
 async def startup(dispatcher: Dispatcher):
     asyncio.create_task(exchanger.download_rates(force=True))
+
+    if config.ENABLE_DUMMY_SERVER:
+        dummy_server.run()
 
 
 if __name__ == '__main__':
