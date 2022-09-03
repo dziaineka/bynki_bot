@@ -9,6 +9,11 @@ async def hello(request):
     return web.Response(text="Hello, world")
 
 
+@routes.get("/healthcheck")
+async def healthcheck(request):
+    return web.Response(text="OK")
+
+
 def start_server():
     app = web.Application()
     app.add_routes(routes)
