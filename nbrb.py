@@ -14,8 +14,13 @@ async def download_rates() -> Optional[dict]:
 
     try:
         for currency_type in config.CURRENCIES:
-            new_rates[currency_type] = \
-                await _get_rate(currency_type)
+            currency_rate = await _get_rate(currency_type)
+
+            if currency_rate is None:
+                raise Exception(
+                    f"NBRB getrate returns None for currency {currency_type}")
+
+            new_rates[currency_type] = currency_rate
 
         logger.info('Загрузили.')
         return new_rates
@@ -28,15 +33,11 @@ async def _get_rate(currency_type):
     if currency_type == config.BYN:
         return 1
 
-    url = 'https://www.nbrb.by/API/ExRates/Rates/' + currency_type + '?'
-
-    params = {
-        'ParamMode': 2
-    }
+    url = f'https://api.nbrb.by/exrates/rates/{currency_type}?parammode=2'
 
     try:
         async with aiohttp.ClientSession() as http_session:
-            async with http_session.get(url, params=params) as response:
+            async with http_session.get(url) as response:
                 if response.status != 200:
                     return None
 
