@@ -62,10 +62,12 @@ class Exchanger:
 
         self._downloading_in_progress = True
 
-        for download_rates in self.download_rates_functions:
+        for download_rates_function in self.download_rates_functions:
             try:
-                if rates := \
-                        await asyncio.wait_for(download_rates(), timeout=3):
+                rates = await asyncio.wait_for(
+                    download_rates_function(), timeout=3)
+                
+                if rates is not None:
                     self._rates = rates
                     self._set_expiration_time()
                     break
