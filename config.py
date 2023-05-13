@@ -9,121 +9,106 @@ dotenv_path = join(dirname(__file__), ".env")
 load_dotenv(dotenv_path)
 
 
-BOT_TOKEN = getenv('TG_TOKEN', "")
-ENABLE_DUMMY_SERVER = bool(int(getenv('ENABLE_DUMMY_SERVER', 0)))
+BOT_TOKEN = getenv("TG_TOKEN", "")
+ENABLE_DUMMY_SERVER = bool(int(getenv("ENABLE_DUMMY_SERVER", 0)))
 
 # hours
-REFRESH_RATES_PAUSE = int(getenv('REFRESH_RATES_PAUSE', "4"))
+REFRESH_RATES_PAUSE = int(getenv("REFRESH_RATES_PAUSE", "4"))
 
 # currencies
-BYN = 'BYN'
-UAH = 'UAH'
-PLN = 'PLN'
-USD = 'USD'
-EUR = 'EUR'
-RUB = 'RUB'
+BYN = "BYN"
+UAH = "UAH"
+PLN = "PLN"
+USD = "USD"
+EUR = "EUR"
+RUB = "RUB"
 
-FLAGS = {
-    BYN: '🇧🇾',
-    UAH: '🇺🇦',
-    PLN: '🇵🇱',
-    USD: '🇺🇸',
-    EUR: '🇪🇺',
-    RUB: '🇷🇺'
-}
+FLAGS = {BYN: "🇧🇾", UAH: "🇺🇦", PLN: "🇵🇱", USD: "🇺🇸", EUR: "🇪🇺", RUB: "🇷🇺"}
 
 CURRENCIES = list(FLAGS)
 
-FULL_MATCH = 'full_match'
-INSIDE = 'inside'
+FULL_MATCH = "full_match"
+INSIDE = "inside"
 
 KEYWORDS = {
     INSIDE: {
         UAH: [
-            'UAH',
-            'грив',
-            'гры',
-            'укр',
-            '₴',
-            'ukr',
-            'hryv',
-            'hriv',
-            'griv',
+            "UAH",
+            "грив",
+            "гры",
+            "укр",
+            "₴",
+            "ukr",
+            "hryv",
+            "hriv",
+            "griv",
         ],
-
         PLN: [
-            'PLN',
-            'злот',
-            'пол',
-            'zł',
-            'zl',
-            'pol',
+            "PLN",
+            "злот",
+            "пол",
+            "zł",
+            "zl",
+            "pol",
         ],
-
         USD: [
-            'USD',
-            'дол',
-            'dol',
-            'бак',
-            'през',
-            'сша',
-            'usa',
-            '$',
-            'amer',
+            "USD",
+            "дол",
+            "dol",
+            "бак",
+            "през",
+            "сша",
+            "usa",
+            "$",
+            "amer",
         ],
-
         EUR: [
-            'EUR',
-            'евр',
-            'эвр',
-            '€',
-            'eu',
+            "EUR",
+            "евр",
+            "эвр",
+            "€",
+            "eu",
         ],
-
         RUB: [
-            'RUB',
-            'рос',
-            'рус',
-            'раш',
-            '₽',
-            'дерев',
-            'rus',
-            'ros',
-        ]
+            "RUB",
+            "рос",
+            "рус",
+            "раш",
+            "₽",
+            "дерев",
+            "rus",
+            "ros",
+        ],
     },
     FULL_MATCH: {
         UAH: [
-            'у',
-            'u',
-            'г',
-            'g',
-            'h',
+            "у",
+            "u",
+            "г",
+            "g",
+            "h",
         ],
-
         PLN: [
-            'п',
-            'p',
-            'з',
-            'z',
+            "п",
+            "p",
+            "з",
+            "z",
         ],
-
         USD: [
-            'a',
-            'а',
-            'd',
-            'д',
+            "a",
+            "а",
+            "d",
+            "д",
         ],
-
         EUR: [
-            'е',
-            'e',
+            "е",
+            "e",
         ],
-
         RUB: [
-            'рф',
-            'rf',
-            'ру',
-            'ru',
-        ]
-    }
+            "рф",
+            "rf",
+            "ру",
+            "ru",
+        ],
+    },
 }

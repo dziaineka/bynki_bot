@@ -9,7 +9,7 @@ logger = logging.getLogger(__name__)
 
 
 async def download_rates() -> Optional[dict]:
-    logger.info('Загружаем валюты.')
+    logger.info("Загружаем валюты.")
     new_rates = dict()
 
     try:
@@ -18,11 +18,12 @@ async def download_rates() -> Optional[dict]:
 
             if currency_rate is None:
                 raise Exception(
-                    f"NBRB getrate returns None for currency {currency_type}")
+                    f"NBRB getrate returns None for currency {currency_type}"
+                )
 
             new_rates[currency_type] = currency_rate
 
-        logger.info('Загрузили.')
+        logger.info("Загрузили.")
         return new_rates
     except Exception:
         logger.exception("Error while loading exchange rates")
@@ -33,15 +34,13 @@ async def _get_rate(currency_type):
     if currency_type == config.BYN:
         return 1
 
-    url = f'https://api.nbrb.by/exrates/rates/{currency_type}?parammode=2'
+    url = f"https://api.nbrb.by/exrates/rates/{currency_type}?parammode=2"
 
     async with aiohttp.ClientSession() as http_session:
         async with http_session.get(url) as response:
             if response.status != 200:
-                raise Exception(
-                    f"get rates response status is {response.status}")
+                raise Exception(f"get rates response status is {response.status}")
 
             resp_json = await response.json(content_type=None)
 
-            return \
-                resp_json['Cur_OfficialRate'] / resp_json['Cur_Scale']
+            return resp_json["Cur_OfficialRate"] / resp_json["Cur_Scale"]

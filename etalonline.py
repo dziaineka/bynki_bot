@@ -11,7 +11,7 @@ logger = logging.getLogger(__name__)
 
 
 async def download_rates() -> Optional[dict]:
-    logger.info('Загружаем валюты.')
+    logger.info("Загружаем валюты.")
     new_rates = dict()
 
     try:
@@ -31,7 +31,7 @@ async def download_rates() -> Optional[dict]:
                 currency_value = float(rates[currency_index])
                 new_rates[currency_type] = currency_value
 
-        logger.info('Загрузили.')
+        logger.info("Загрузили.")
         return new_rates
     except Exception:
         logger.exception("Error while loading exchange rates")
@@ -47,14 +47,14 @@ def _fix_euro(currencies: list) -> list:
 
 
 def _extract_rates_table(html: str) -> List[list]:
-    soup = BeautifulSoup(html, 'html.parser')
-    table = soup.find('table', attrs={'id': 'val'})
-    table_body = table.find('tbody')
+    soup = BeautifulSoup(html, "html.parser")
+    table = soup.find("table", attrs={"id": "val"})
+    table_body = table.find("tbody")
     data = []
-    rows = table_body.find_all('tr')
+    rows = table_body.find_all("tr")
 
     for row in rows:
-        cols = row.find_all('td')
+        cols = row.find_all("td")
         cols = [ele.text.strip() for ele in cols]
         # Get rid of empty values
         data.append([ele for ele in cols if ele])
@@ -105,6 +105,7 @@ async def _get_etalononline_page() -> str:
     except Exception:
         logger.exception(f"Error while downloading page: {url}")
         return ""
+
 
 if __name__ == "__main__":
     asyncio.run(download_rates())

@@ -11,7 +11,7 @@ logger = logging.getLogger(__name__)
 
 
 async def download_rates() -> Optional[dict]:
-    logger.info('Загружаем валюты.')
+    logger.info("Загружаем валюты.")
     new_rates = dict()
     new_rates[config.BYN] = 1
 
@@ -28,12 +28,12 @@ async def download_rates() -> Optional[dict]:
                 currency_amount = float(row[1].replace(",", "."))
                 currency_value = round(
                     float(row[3].replace(",", ".")) / currency_amount,
-                    4 + currency_amount_len - 1
+                    4 + currency_amount_len - 1,
                 )
 
                 new_rates[currancy_name] = currency_value
 
-        logger.info('Загрузили.')
+        logger.info("Загрузили.")
         return new_rates
     except Exception:
         logger.exception("Error while loading exchange rates")
@@ -41,14 +41,14 @@ async def download_rates() -> Optional[dict]:
 
 
 def _extract_rates_table(html: str) -> List[list]:
-    soup = BeautifulSoup(html, 'html.parser')
-    table = soup.find('table', attrs={'id': 'table-currencies'})
-    table_body = table.find('tbody')
+    soup = BeautifulSoup(html, "html.parser")
+    table = soup.find("table", attrs={"id": "table-currencies"})
+    table_body = table.find("tbody")
     data = []
-    rows = table_body.find_all('tr')
+    rows = table_body.find_all("tr")
 
     for row in rows:
-        cols = row.find_all('td')
+        cols = row.find_all("td")
         cols = [ele.text.strip() for ele in cols]
         # Get rid of empty values
         data.append([ele for ele in cols if ele])
@@ -99,6 +99,7 @@ async def _get_page() -> str:
     except Exception:
         logger.exception(f"Error while downloading page: {url}")
         return ""
+
 
 if __name__ == "__main__":
     asyncio.run(download_rates())
