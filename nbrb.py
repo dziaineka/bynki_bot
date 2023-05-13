@@ -35,22 +35,13 @@ async def _get_rate(currency_type):
 
     url = f'https://api.nbrb.by/exrates/rates/{currency_type}?parammode=2'
 
-    try:
-        async with aiohttp.ClientSession() as http_session:
-            async with http_session.get(url) as response:
-                if response.status != 200:
-                    return None
+    async with aiohttp.ClientSession() as http_session:
+        async with http_session.get(url) as response:
+            if response.status != 200:
+                raise Exception(
+                    f"get rates response status is {response.status}")
 
-                resp_json = await response.json(content_type=None)
+            resp_json = await response.json(content_type=None)
 
-                return \
-                    resp_json['Cur_OfficialRate'] / resp_json['Cur_Scale']
-
-    except aiohttp.ServerTimeoutError:
-        return None
-
-    except json.decoder.JSONDecodeError:
-        return None
-
-    except IndexError:
-        return None
+            return \
+                resp_json['Cur_OfficialRate'] / resp_json['Cur_Scale']
