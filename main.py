@@ -308,8 +308,8 @@ async def wrong_input(message: types.Message):
 @dp.callback_query_handler(lambda call: call.data in config.CURRENCIES)
 async def currency_click(call):
     logger.info(
-        "Обрабатываем нажатие кнопки другой валюты - "
-        + str(call.from_user.username)
+        f"Обрабатываем нажатие кнопки валюты "
+        f"{call.data} - {str(call.from_user.username)}"
     )
 
     await bot.answer_callback_query(call.id)
