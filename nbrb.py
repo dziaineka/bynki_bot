@@ -39,7 +39,9 @@ async def _get_rate(currency_type):
     async with aiohttp.ClientSession() as http_session:
         async with http_session.get(url) as response:
             if response.status != 200:
-                raise Exception(f"get rates response status is {response.status}")
+                raise Exception(
+                    f"get rates response status is {response.status}"
+                )
 
             resp_json = await response.json(content_type=None)
 

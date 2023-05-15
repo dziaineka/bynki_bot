@@ -66,7 +66,9 @@ class Exchanger:
 
         for download_rates_function in self.download_rates_functions:
             try:
-                rates = await asyncio.wait_for(download_rates_function(), timeout=3)
+                rates = await asyncio.wait_for(
+                    download_rates_function(), timeout=3
+                )
 
                 if rates is not None:
                     self._rates = rates
@@ -80,7 +82,9 @@ class Exchanger:
         self._downloading_in_progress = False
 
     async def wait_first(self, tasks: list):
-        done, pending = await asyncio.wait(tasks, return_when=asyncio.FIRST_COMPLETED)
+        done, pending = await asyncio.wait(
+            tasks, return_when=asyncio.FIRST_COMPLETED
+        )
 
         for future in pending:
             future.cancel()

@@ -28,9 +28,13 @@ storage = MemoryStorage()
 dp = Dispatcher(bot, storage=storage)
 exchanger = Exchanger()
 
-re_float = re.compile(regexps.re_float, re.MULTILINE | re.IGNORECASE | re.VERBOSE)
+re_float = re.compile(
+    regexps.re_float, re.MULTILINE | re.IGNORECASE | re.VERBOSE
+)
 
-re_parse = re.compile(regexps.re_parse, re.MULTILINE | re.IGNORECASE | re.VERBOSE)
+re_parse = re.compile(
+    regexps.re_parse, re.MULTILINE | re.IGNORECASE | re.VERBOSE
+)
 
 ARITHMETIC_OPERATIONS = ["+", "-", "*", "/"]
 WRONG_INPUT = "Некорректный ввод 🤷‍♀️"
@@ -94,7 +98,9 @@ def recognize_currency(user_string: str) -> Union[tuple, str]:
     full_match_patterns = config.KEYWORDS[config.FULL_MATCH]
 
     for currency_type in full_match_patterns:
-        if keywords_full_match(user_string, full_match_patterns[currency_type]):
+        if keywords_full_match(
+            user_string, full_match_patterns[currency_type]
+        ):
             return get_amount(user_string), currency_type
 
     inside_patterns = config.KEYWORDS[config.INSIDE]
@@ -214,7 +220,9 @@ def calc(str_to_eval: str) -> Tuple[bool, float]:
         return success, sum
 
 
-async def make_exhanging(text: str) -> Tuple[str, Optional[types.InlineKeyboardMarkup]]:
+async def make_exhanging(
+    text: str,
+) -> Tuple[str, Optional[types.InlineKeyboardMarkup]]:
     parsed_input = parse_input(text)
 
     if len(parsed_input) == 1:
@@ -238,13 +246,16 @@ async def cmd_start(message: types.Message):
 
 
 @dp.message_handler(
-    lambda message: valid_input(message.text), content_types=types.ContentType.TEXT
+    lambda message: valid_input(message.text),
+    content_types=types.ContentType.TEXT,
 )
 async def amount_sent(message: types.Message):
     """
     Process entered money amount
     """
-    logger.info(f'Спросили сумму "{message.text}" - ' + str(message.from_user.username))
+    logger.info(
+        f'Спросили сумму "{message.text}" - ' + str(message.from_user.username)
+    )
 
     text, keyboard = await make_exhanging(message.text)
 
@@ -260,7 +271,9 @@ async def inline_exhange(inline_query: types.InlineQuery):
         + str(inline_query.from_user.username)
     )
 
-    input_content = types.InputTextMessageContent(inline_query.query, parse_mode="HTML")
+    input_content = types.InputTextMessageContent(
+        inline_query.query, parse_mode="HTML"
+    )
 
     text = WRONG_INPUT
 
@@ -271,7 +284,9 @@ async def inline_exhange(inline_query: types.InlineQuery):
         input_content.message_text = WRONG_INPUT
 
     item = types.InlineQueryResultArticle(
-        id="1", title=text.replace("*", ""), input_message_content=input_content
+        id="1",
+        title=text.replace("*", ""),
+        input_message_content=input_content,
     )
 
     await bot.answer_inline_query(inline_query.id, results=[item])
@@ -283,7 +298,8 @@ async def wrong_input(message: types.Message):
     Wrong input
     """
     logger.info(
-        f'Спросили неправильное "{message.text}" - ' + str(message.from_user.username)
+        f'Спросили неправильное "{message.text}" - '
+        + str(message.from_user.username)
     )
 
     await bot.send_message(message.from_user.id, WRONG_INPUT)
@@ -292,7 +308,8 @@ async def wrong_input(message: types.Message):
 @dp.callback_query_handler(lambda call: call.data in config.CURRENCIES)
 async def currency_click(call):
     logger.info(
-        "Обрабатываем нажатие кнопки другой валюты - " + str(call.from_user.username)
+        "Обрабатываем нажатие кнопки другой валюты - "
+        + str(call.from_user.username)
     )
 
     await bot.answer_callback_query(call.id)
