@@ -14,7 +14,8 @@ logger = logging.getLogger(__name__)
 class Exchanger:
     def __init__(self):
         self._rates = dict()
-        self._rates_expiration = datetime.utcnow()
+        self._rates_refresh_dt = datetime.utcnow() - timedelta(days=365)
+        self._rates_expiration_dt = datetime.utcnow() - timedelta(days=365)
         self._downloading_in_progress = False
         self.download_rates_functions = [
             nbrb.download_rates,
@@ -22,13 +23,18 @@ class Exchanger:
             etalonline.download_rates,
         ]
 
+    def _set_refresh_time(self):
+        self._rates_refresh_dt = datetime.utcnow() + timedelta(
+            hours=config.REFRESH_RATES_INTERVAL
+        )
+
     def _set_expiration_time(self):
-        self._rates_expiration = datetime.utcnow() + timedelta(
-            hours=config.REFRESH_RATES_PAUSE
+        self._rates_expiration_dt = datetime.utcnow() + timedelta(
+            hours=config.RATES_TTL
         )
 
     async def exchange(self, amount: float, currency_from: str) -> dict:
-        await self.download_rates()
+        await self.maybe_update_rates()
         result = dict()
 
         for currency_type in config.CURRENCIES:
@@ -41,7 +47,7 @@ class Exchanger:
             ):
                 result[currency_type] = NO_RATES
                 logger.info("Попробуем загрузить курсы еще раз")
-                asyncio.create_task(self.download_rates(force=True))
+                asyncio.create_task(self.update_rates())
             else:
                 result[currency_type] = round(
                     (
@@ -54,10 +60,23 @@ class Exchanger:
 
         return result
 
-    async def download_rates(self, force=False):
-        if self._rates_expiration > datetime.utcnow() and not force:
+    async def maybe_update_rates(self):
+        now = datetime.utcnow()
+
+        # update rates called when user called conversion, so not to force user
+        # to wait for downloading rates we can check if rates is not expired
+        # and expose async task to download rates
+
+        if self._rates_refresh_dt > now:
             return
 
+        if self._rates_expiration_dt < now:
+            asyncio.create_task(self.update_rates())
+            return
+
+        await self.update_rates()
+
+    async def update_rates(self):
         if self._downloading_in_progress:
             logger.info("Уже загружаются")
             return
@@ -72,6 +91,7 @@ class Exchanger:
 
                 if rates is not None:
                     self._rates = rates
+                    self._set_refresh_time()
                     self._set_expiration_time()
                     break
                 else:

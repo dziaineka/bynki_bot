@@ -328,7 +328,7 @@ async def currency_click(call):
 
 
 async def startup(dispatcher: Dispatcher):
-    asyncio.create_task(exchanger.download_rates(force=True))
+    asyncio.create_task(exchanger.update_rates())
 
     if config.ENABLE_DUMMY_SERVER:
         dummy_server.run()

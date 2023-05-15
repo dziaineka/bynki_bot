@@ -13,7 +13,9 @@ BOT_TOKEN = getenv("TG_TOKEN", "")
 ENABLE_DUMMY_SERVER = bool(int(getenv("ENABLE_DUMMY_SERVER", 0)))
 
 # hours
-REFRESH_RATES_PAUSE = int(getenv("REFRESH_RATES_PAUSE", "1"))
+REFRESH_RATES_INTERVAL = int(getenv("REFRESH_RATES_INTERVAL", "1"))
+# hours
+RATES_TTL = int(getenv("RATES_TTL", "4"))
 
 # currencies
 BYN = "BYN"
