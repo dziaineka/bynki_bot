@@ -132,11 +132,13 @@ def formatted_sum(amounts: dict, currency: str) -> str:
     return f"{config.FLAGS[currency]} <b>{amount}</b> \n"
 
 
-def get_currency_button(currency_type):
+def get_currency_button(currency_type: str) -> types.InlineKeyboardButton:
+    text = f"{config.FLAGS[currency_type]} {currency_type}"
+
     button = types.InlineKeyboardButton(
-        text=f"{config.FLAGS[currency_type]} {currency_type}",
+        text=text,
         callback_data=currency_type,
-    )
+    )  # type: ignore
 
     return button
 
@@ -268,7 +270,7 @@ async def amount_sent(message: types.Message):
 async def inline_exhange(inline_query: types.InlineQuery):
     logger.info(
         f"Спрашивают инлайн {inline_query.query} "
-        + str(inline_query.from_user.username)
+        f"{str(inline_query.from_user.username)}"
     )
 
     input_content = types.InputTextMessageContent(
@@ -299,7 +301,7 @@ async def wrong_input(message: types.Message):
     """
     logger.info(
         f'Спросили неправильное "{message.text}" - '
-        + str(message.from_user.username)
+        f"{str(message.from_user.username)}"
     )
 
     await bot.send_message(message.from_user.id, WRONG_INPUT)

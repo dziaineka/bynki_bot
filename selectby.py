@@ -3,7 +3,7 @@ import logging
 from typing import List, Optional
 
 import aiohttp
-from bs4 import BeautifulSoup
+from bs4 import BeautifulSoup, Tag
 
 import config
 
@@ -43,7 +43,15 @@ async def download_rates() -> Optional[dict]:
 def _extract_rates_table(html: str) -> List[list]:
     soup = BeautifulSoup(html, "html.parser")
     table = soup.find("table", attrs={"id": "table-currencies"})
-    table_body = table.find("tbody")
+
+    if not table:
+        raise Exception("Can't find rates 1")
+
+    table_body: Tag = table.find("tbody")  # type: ignore
+
+    if not table_body:
+        raise Exception("Can't find rates 2")
+
     data = []
     rows = table_body.find_all("tr")
 
