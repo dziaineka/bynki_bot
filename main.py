@@ -37,7 +37,7 @@ re_parse = re.compile(
 )
 
 ARITHMETIC_OPERATIONS = ["+", "-", "*", "/"]
-WRONG_INPUT = "Некорректный ввод 🤷‍♀️"
+WRONG_INPUT = "Некарэктны ўвод 🤷‍♀️"
 
 
 def keywords_inside(raw_input: str, keywords: list) -> bool:
@@ -241,9 +241,9 @@ async def cmd_start(message: types.Message):
     """
     Conversation's entry point
     """
-    logger.info("Пришел новый пользователь." + str(message.from_user.username))
+    logger.info("New user." + str(message.from_user.username))
     await message.reply(
-        "Привет, вводи сумму и я конвертирую ее в " + "валюты наших соседей."
+        "Прывітанне, уводзь суму і я канвертую яе ў іншыя валюты."
     )
 
 
@@ -256,7 +256,7 @@ async def amount_sent(message: types.Message):
     Process entered money amount
     """
     logger.info(
-        f'Спросили сумму "{message.text}" - ' + str(message.from_user.username)
+        f'Sum asked "{message.text}" - ' + str(message.from_user.username)
     )
 
     text, keyboard = await make_exhanging(message.text)
@@ -269,7 +269,7 @@ async def amount_sent(message: types.Message):
 @dp.inline_handler()
 async def inline_exhange(inline_query: types.InlineQuery):
     logger.info(
-        f"Спрашивают инлайн {inline_query.query} "
+        f"Inline asked {inline_query.query} "
         f"{str(inline_query.from_user.username)}"
     )
 
@@ -300,7 +300,7 @@ async def wrong_input(message: types.Message):
     Wrong input
     """
     logger.info(
-        f'Спросили неправильное "{message.text}" - '
+        f'Wrong asked "{message.text}" - '
         f"{str(message.from_user.username)}"
     )
 
@@ -310,7 +310,7 @@ async def wrong_input(message: types.Message):
 @dp.callback_query_handler(lambda call: call.data in config.CURRENCIES)
 async def currency_click(call):
     logger.info(
-        f"Обрабатываем нажатие кнопки валюты "
+        f"Currency button handling "
         f"{call.data} - {str(call.from_user.username)}"
     )
 
