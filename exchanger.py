@@ -7,7 +7,7 @@ import selectby
 
 import config
 
-NO_RATES = "🤷‍♀️ Не удалось получить курс НБРБ"
+NO_RATES = "🤷‍♀️ Не ўдалося атрымаць курс"
 logger = logging.getLogger(__name__)
 
 
@@ -46,7 +46,7 @@ class Exchanger:
                 currency_from, None
             ):
                 result[currency_type] = NO_RATES
-                logger.info("Попробуем загрузить курсы еще раз")
+                logger.info("Try to load currencies once again")
                 asyncio.create_task(self.update_rates())
             else:
                 result[currency_type] = round(
@@ -78,7 +78,7 @@ class Exchanger:
 
     async def update_rates(self):
         if self._downloading_in_progress:
-            logger.info("Уже загружаются")
+            logger.info("Currencies loading already in progress")
             return
 
         self._downloading_in_progress = True

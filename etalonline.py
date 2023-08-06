@@ -11,7 +11,7 @@ logger = logging.getLogger(__name__)
 
 
 async def download_rates() -> Optional[dict]:
-    logger.info("Загружаем валюты.")
+    logger.info("Currencies loading.")
     new_rates = dict()
 
     try:
@@ -31,7 +31,7 @@ async def download_rates() -> Optional[dict]:
                 currency_value = float(rates[currency_index])
                 new_rates[currency_type] = currency_value
 
-        logger.info("Загрузили.")
+        logger.info("Currencies loaded.")
         return new_rates
     except Exception:
         logger.exception("Error while loading exchange rates")
