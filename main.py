@@ -4,10 +4,11 @@ import re
 import sys
 from typing import List, Optional, Tuple, Union
 
-from aiogram import Bot, Dispatcher, types
-from aiogram.contrib.fsm_storage.memory import MemoryStorage
-from aiogram.utils import executor
-from aiogram.utils.exceptions import MessageNotModified
+from aiogram import Bot, Dispatcher, types, F
+from aiogram.filters import CommandStart
+from aiogram.enums import ParseMode
+from aiogram.utils.keyboard import InlineKeyboardBuilder
+
 
 import config
 import dummy_server
@@ -22,10 +23,9 @@ logging.basicConfig(
 
 logger = logging.getLogger("bynki_bot")
 
-bot = Bot(token=config.BOT_TOKEN)
+bot = Bot(config.BOT_TOKEN, parse_mode=ParseMode.HTML)
 
-storage = MemoryStorage()
-dp = Dispatcher(bot, storage=storage)
+dp = Dispatcher()
 exchanger = Exchanger()
 
 re_float = re.compile(
@@ -145,15 +145,15 @@ def get_currency_button(currency_type: str) -> types.InlineKeyboardButton:
     return button
 
 
-def compose_keyboard(excluded_currency):
+def compose_keyboard() -> types.InlineKeyboardMarkup:
     # настроим клавиатуру
-    keyboard = types.InlineKeyboardMarkup(row_width=3)
+    keyboard = InlineKeyboardBuilder()
     buttons = list()
 
     for currency_type in config.CURRENCIES:
         buttons.append(get_currency_button(currency_type))
 
-    return keyboard.add(*buttons)
+    return keyboard.add(*buttons).adjust(3, repeat=True).as_markup()
 
 
 async def exhange(
@@ -161,7 +161,7 @@ async def exhange(
 ) -> Tuple[str, types.InlineKeyboardMarkup]:
     exchanged_amount = await exchanger.exchange(amount, currency_from)
     text = compose_reply(exchanged_amount, currency_from)
-    keyboard = compose_keyboard(currency_from)
+    keyboard = compose_keyboard()
     return text, keyboard
 
 
@@ -225,8 +225,11 @@ def calc(str_to_eval: str) -> Tuple[bool, float]:
 
 
 async def make_exhanging(
-    text: str,
+    text: str | None,
 ) -> Tuple[str, Optional[types.InlineKeyboardMarkup]]:
+    if text is None:
+        return WRONG_INPUT, None
+
     parsed_input = parse_input(text)
 
     if len(parsed_input) == 1:
@@ -238,7 +241,7 @@ async def make_exhanging(
     return text, keyboard
 
 
-@dp.message_handler(commands=["start"])
+@dp.message(CommandStart())
 async def cmd_start(message: types.Message):
     """
     Conversation's entry point
@@ -249,10 +252,7 @@ async def cmd_start(message: types.Message):
     )
 
 
-@dp.message_handler(
-    lambda message: valid_input(message.text),
-    content_types=types.ContentType.TEXT,
-)
+@dp.message(F.text, lambda message: valid_input(message.text))
 async def amount_sent(message: types.Message):
     """
     Process entered money amount
@@ -268,48 +268,19 @@ async def amount_sent(message: types.Message):
     )
 
 
-@dp.inline_handler()
-async def inline_exhange(inline_query: types.InlineQuery):
-    logger.info(
-        f"Inline asked {inline_query.query} "
-        f"{str(inline_query.from_user.username)}"
-    )
-
-    input_content = types.InputTextMessageContent(
-        inline_query.query, parse_mode="HTML"
-    )
-
-    text = WRONG_INPUT
-
-    if valid_input(input_content.message_text):
-        text, _ = await make_exhanging(input_content.message_text)
-        input_content.message_text = text
-    else:
-        input_content.message_text = WRONG_INPUT
-
-    item = types.InlineQueryResultArticle(
-        id="1",
-        title=text.replace("*", ""),
-        input_message_content=input_content,
-    )
-
-    await bot.answer_inline_query(inline_query.id, results=[item])
-
-
-@dp.message_handler()
+@dp.message()
 async def wrong_input(message: types.Message):
     """
     Wrong input
     """
     logger.info(
-        f'Wrong asked "{message.text}" - '
-        f"{str(message.from_user.username)}"
+        f'Wrong asked "{message.text}" - ' f"{str(message.from_user.username)}"
     )
 
     await bot.send_message(message.from_user.id, WRONG_INPUT)
 
 
-@dp.callback_query_handler(lambda call: call.data in config.CURRENCIES)
+@dp.callback_query(lambda call: call.data in config.CURRENCIES)
 async def currency_click(call):
     logger.info(
         f"Currency button handling "
@@ -327,10 +298,12 @@ async def currency_click(call):
             reply_markup=keyboard,
             parse_mode="HTML",
         )
-    except MessageNotModified:
+    except Exception as exception:
+        print(exception)
         pass
 
 
+@dp.startup()
 async def startup(dispatcher: Dispatcher):
     asyncio.create_task(exchanger.update_rates())
 
@@ -338,5 +311,10 @@ async def startup(dispatcher: Dispatcher):
         dummy_server.run()
 
 
+async def main() -> None:
+    # And the run events dispatching
+    await dp.start_polling(bot)
+
+
 if __name__ == "__main__":
-    executor.start_polling(dp, skip_updates=True, on_startup=startup)
+    asyncio.run(main())
