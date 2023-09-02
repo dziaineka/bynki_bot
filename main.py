@@ -63,6 +63,8 @@ def keywords_full_match(raw_input: str, keywords: list) -> bool:
 
 def parse_input(raw_input: str) -> list:
     raw_input = raw_input.replace(",", ".").replace(" ", "")
+    points_count = raw_input.count(".")
+    raw_input = raw_input.replace(".", "", points_count - 1)
     splitted_input = split_input(raw_input)
     parsed_input = list()
 
