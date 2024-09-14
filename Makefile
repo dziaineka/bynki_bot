@@ -4,9 +4,9 @@ IMG    := ${NAME}:${TAG}
 LATEST := ${NAME}:latest
 
 build:
-	@docker build -t ${IMG} .
-	@docker build -t ${LATEST} .
+	@docker buildx build --platform linux/amd64,linux/arm64 -t ${IMG} .
+	@docker buildx build --platform linux/amd64,linux/arm64 -t ${LATEST} .
 
 push:
-	@docker push ${IMG}
-	@docker push ${LATEST}
+	@docker buildx build --platform linux/amd64,linux/arm64 -t ${IMG} --push .
+	@docker buildx build --platform linux/amd64,linux/arm64 -t ${LATEST} --push .
