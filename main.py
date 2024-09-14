@@ -8,11 +8,13 @@ from aiogram import Bot, Dispatcher, types, F
 from aiogram.filters import CommandStart
 from aiogram.enums import ParseMode
 from aiogram.utils.keyboard import InlineKeyboardBuilder
+from aiogram.client.default import DefaultBotProperties
 
 
 import config
 import dummy_server
 import regexps
+import telegram_message
 from exchanger import Exchanger
 
 logging.basicConfig(
@@ -23,18 +25,14 @@ logging.basicConfig(
 
 logger = logging.getLogger("bynki_bot")
 
-bot = Bot(config.BOT_TOKEN, parse_mode=ParseMode.HTML)
+bot = Bot(config.BOT_TOKEN, default=DefaultBotProperties(parse_mode=ParseMode.HTML))
 
 dp = Dispatcher()
 exchanger = Exchanger()
 
-re_float = re.compile(
-    regexps.re_float, re.MULTILINE | re.IGNORECASE | re.VERBOSE
-)
+re_float = re.compile(regexps.re_float, re.MULTILINE | re.IGNORECASE | re.VERBOSE)
 
-re_parse = re.compile(
-    regexps.re_parse, re.MULTILINE | re.IGNORECASE | re.VERBOSE
-)
+re_parse = re.compile(regexps.re_parse, re.MULTILINE | re.IGNORECASE | re.VERBOSE)
 
 ARITHMETIC_OPERATIONS = ["+", "-", "*", "/"]
 WRONG_INPUT = "Некарэктны ўвод 🤷‍♀️"
@@ -100,9 +98,7 @@ def recognize_currency(user_string: str) -> Union[tuple, str]:
     full_match_patterns = config.KEYWORDS[config.FULL_MATCH]
 
     for currency_type in full_match_patterns:
-        if keywords_full_match(
-            user_string, full_match_patterns[currency_type]
-        ):
+        if keywords_full_match(user_string, full_match_patterns[currency_type]):
             return get_amount(user_string), currency_type
 
     inside_patterns = config.KEYWORDS[config.INSIDE]
@@ -146,7 +142,7 @@ def get_currency_button(currency_type: str) -> types.InlineKeyboardButton:
 
 
 def compose_keyboard() -> types.InlineKeyboardMarkup:
-    # настроим клавиатуру
+    # setup keyboard
     keyboard = InlineKeyboardBuilder()
     buttons = list()
 
@@ -246,10 +242,8 @@ async def cmd_start(message: types.Message):
     """
     Conversation's entry point
     """
-    logger.info("New user." + str(message.from_user.username))
-    await message.reply(
-        "Прывітанне, уводзь суму і я канвертую яе ў іншыя валюты."
-    )
+    logger.info("New user." + str(telegram_message.get_user_name_or_id(message)))
+    await message.reply("Прывітанне, уводзь суму і я канвертую яе ў іншыя валюты.")
 
 
 @dp.message(F.text, lambda message: valid_input(message.text))
@@ -258,13 +252,17 @@ async def amount_sent(message: types.Message):
     Process entered money amount
     """
     logger.info(
-        f'Sum asked "{message.text}" - ' + str(message.from_user.username)
+        f'Sum asked "{message.text}" - '
+        + str(telegram_message.get_user_name_or_id(message))
     )
 
     text, keyboard = await make_exhanging(message.text)
 
     await bot.send_message(
-        message.from_user.id, text, reply_markup=keyboard, parse_mode="HTML"
+        telegram_message.get_user_id(message),
+        text,
+        reply_markup=keyboard,
+        parse_mode=ParseMode.HTML,
     )
 
 
@@ -274,17 +272,17 @@ async def wrong_input(message: types.Message):
     Wrong input
     """
     logger.info(
-        f'Wrong asked "{message.text}" - ' f"{str(message.from_user.username)}"
+        f'Wrong asked "{message.text}" - '
+        f"{str(telegram_message.get_user_name_or_id(message))}"
     )
 
-    await bot.send_message(message.from_user.id, WRONG_INPUT)
+    await bot.send_message(telegram_message.get_user_id(message), WRONG_INPUT)
 
 
 @dp.callback_query(lambda call: call.data in config.CURRENCIES)
 async def currency_click(call):
     logger.info(
-        f"Currency button handling "
-        f"{call.data} - {str(call.from_user.username)}"
+        f"Currency button handling " f"{call.data} - {str(call.from_user.username)}"
     )
 
     await bot.answer_callback_query(call.id)
@@ -293,10 +291,11 @@ async def currency_click(call):
     try:
         await bot.edit_message_text(
             text,
-            call.message.chat.id,
-            call.message.message_id,
+            business_connection_id=None,
+            chat_id=call.message.chat.id,
+            message_id=call.message.message_id,
             reply_markup=keyboard,
-            parse_mode="HTML",
+            parse_mode=ParseMode.HTML,
         )
     except Exception as exception:
         print(exception)
@@ -312,7 +311,6 @@ async def startup(dispatcher: Dispatcher):
 
 
 async def main() -> None:
-    # And the run events dispatching
     await dp.start_polling(bot)
 
 
