@@ -149,7 +149,7 @@ def compose_keyboard() -> types.InlineKeyboardMarkup:
     for currency_type in config.CURRENCIES:
         buttons.append(get_currency_button(currency_type))
 
-    return keyboard.add(*buttons).adjust(3, repeat=True).as_markup()
+    return keyboard.add(*buttons).adjust(3, repeat=True).as_markup()  # type: ignore
 
 
 async def exhange(
