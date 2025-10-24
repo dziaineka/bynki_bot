@@ -10,3 +10,7 @@ build:
 push:
 	@docker buildx build --platform linux/amd64,linux/arm64 -t ${IMG} --push .
 	@docker buildx build --platform linux/amd64,linux/arm64 -t ${LATEST} --push .
+
+pyenv:
+	@python3 -m venv .venv
+	@. .venv/bin/activate && pip install -r requirements.txt
